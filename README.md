@@ -11,6 +11,7 @@
 ## 주요 기능
 
 - 유치원 ~ Grade 12, 성인까지 개별 버튼으로 연령/학년 선택
+- 피드백 언어 선택(6개 언어), 수업 수강/테스트 글 구분에 따라 Flow & Organization 피드백 방향 조정
 - 4개 카테고리별 점수 + 구체적 피드백, 종합 점수/총평, 잘한 점, 다음 목표 제시
 - 결과 **복사**(클립보드), **저장**(별도 HTML 리포트 파일로 다운로드), **인쇄/PDF 출력** 지원
 - 빌드 과정이나 백엔드 서버 없이 정적 파일만으로 동작 (프레임워크 불필요)
@@ -60,16 +61,24 @@ Anthropic API 키 입력 → 학년 선택 → 글 입력 → "첨삭 시작하�
 
 ## 라이선스 & 저작권 안내
 
-- 이 프로젝트의 소스 코드는 [MIT License](./LICENSE)로 배포되며, 누구나 자유롭게
-  복사·수정·재배포·상업적 이용이 가능합니다.
-- 폰트는 오픈 라이선스(SIL Open Font License)인 Google Fonts(Noto Sans KR, Inter)를
-  CDN 링크로만 불러오며, 이미지·아이콘은 이모지만 사용해 별도 저작권 이슈가 없습니다.
-- 본 프로젝트는 **Anthropic 또는 Claude와 공식적으로 제휴되지 않은 독립 프로젝트**입니다.
-  "Claude"와 "Anthropic"은 Anthropic PBC의 상표이며, 본 도구는 이용자가 직접 발급받은
-  API 키로 해당 공개 API를 호출할 뿐입니다.
+- 이 프로젝트의 소스 코드·프롬프트·디자인·문서는 **EnL_language(E&Languages)의 저작물**이며,
+  개인·수업용으로만 쓸 수 있습니다. 허락 없이 복사·수정·공유·재배포할 수 없습니다. 자세한 내용은 [LICENSE](./LICENSE)를 보세요.
+- 폰트는 SIL Open Font License인 Google Fonts(Noto Sans KR, Inter)를 CDN 링크로만 불러오며, 이미지·아이콘은 이모지만 사용합니다.
+- 예시 글은 직접 쓴 글이며, 채점 기준은 특정 출판사·시험 기관의 루브릭을 옮긴 것이 아닙니다.
+- 본 도구는 **Anthropic 또는 Claude와 공식적으로 제휴되어 있지 않습니다**. "Claude"와 "Anthropic"은 Anthropic PBC의 상표입니다.
 - AI가 생성하는 채점 결과는 참고용이며 오류가 있을 수 있습니다. 실제 성적/평가에
   사용하기 전 반드시 교사 또는 보호자의 검토를 거쳐주세요.
+
+## 피드백 언어
+
+설명은 한국어·English·日本語·中文·Español·Tiếng Việt 중 고른 언어로 나오고,
+학생 원문 인용과 고친 영어 문장은 영어 그대로 보여 줍니다. 글에 영어가 아닌 부분이 섞여 있으면
+그 부분은 채점하지 않고 총평에서 따로 알려 줍니다.
 
 ## 기술 스택
 
 순수 HTML / CSS / JavaScript (프레임워크·빌드 도구 없음), Anthropic Messages API.
+
+---
+
+© 2026 EnL_language. All rights reserved. For personal and classroom use only. Do not copy, share, or redistribute without permission.
