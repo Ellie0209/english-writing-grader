@@ -48,7 +48,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Noto Sans KR', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Noto Sans KR', 'Inter', 'Hiragino Sans', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.6;
 }
 
@@ -349,9 +349,11 @@ input:focus, select:focus, textarea:focus {
 
 @media print {
   .site-header, .settings-panel, #settingsToggle,
-  .no-print, .result-actions, .site-footer, .loading-overlay {
+  .no-print, .result-actions, .site-footer p:not(.footer-license), .loading-overlay {
     display: none !important;
   }
+  .site-footer { padding-top: 12px; }
+  .footer-license { display: block !important; font-size: 10px; }
   body { background: #fff; }
   .panel { box-shadow: none; border: none; }
   .app { max-width: 100%; padding: 0; }

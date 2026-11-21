@@ -40,9 +40,9 @@
     <div class="field-row">
       <label for="modelSelect">채점 모델</label>
       <select id="modelSelect">
-        <option value="claude-haiku-4-5-20251001">빠르고 저렴함 (Haiku)</option>
-        <option value="claude-sonnet-5" selected>균형 잡힘 · 추천 (Sonnet)</option>
-        <option value="claude-opus-5">가장 정교함 (Opus)</option>
+        <option value="claude-haiku-5-5">빠르고 저렴함 (Haiku)</option>
+        <option value="claude-sonnet-5-5" selected>균형 잡힘 · 추천 (Sonnet)</option>
+        <option value="claude-opus-5-5">가장 정교함 (Opus)</option>
       </select>
     </div>
     <div class="field-row checkbox-row">
@@ -61,7 +61,30 @@
     </section>
 
     <section class="panel no-print">
-      <h2>2. 글 작성 또는 붙여넣기</h2>
+      <h2>2. 채점 옵션</h2>
+      <div class="field-row">
+        <label for="feedbackLang">피드백 언어 (학부모·학생이 읽을 언어)</label>
+        <select id="feedbackLang">
+          <option value="ko" selected>한국어</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+          <option value="zh">中文（简体）</option>
+          <option value="es">Español</option>
+          <option value="vi">Tiếng Việt</option>
+        </select>
+      </div>
+      <p class="hint small">설명은 선택한 언어로 쓰고, 학생 원문 인용과 고친 영어 문장은 영어 그대로 보여 줍니다.</p>
+      <div class="field-row" style="margin-top:12px;">
+        <label for="lessonMode">글을 쓴 상황</label>
+        <select id="lessonMode">
+          <option value="lesson" selected>수업(줌수업)을 듣고 쓴 글</option>
+          <option value="test">수업 없이 쓴 테스트 글</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="panel no-print">
+      <h2>3. 글 작성 또는 붙여넣기</h2>
       <div class="field-row">
         <label for="essayTitle">제목 (선택)</label>
         <input type="text" id="essayTitle" placeholder="예: My Summer Vacation">
@@ -79,7 +102,7 @@
 
     <section class="panel results-panel" id="resultsPanel" hidden>
       <div class="results-header">
-        <h2>채점 결과</h2>
+        <h2 id="resultsTitle">채점 결과</h2>
         <div class="result-actions">
           <button id="copyBtn" class="btn btn-ghost btn-sm" type="button">📋 결과 복사</button>
           <button id="saveBtn" class="btn btn-ghost btn-sm" type="button">💾 저장 (HTML)</button>
@@ -92,7 +115,7 @@
       <div class="overall-card">
         <div class="overall-score" id="overallScore">--</div>
         <div class="overall-text">
-          <h3>종합 평가</h3>
+          <h3 id="overallTitle">종합 평가</h3>
           <p id="overallSummary"></p>
         </div>
       </div>
@@ -101,11 +124,11 @@
 
       <div class="two-col">
         <div class="callout callout-good">
-          <h3>👍 잘한 점</h3>
+          <h3 id="strengthsTitle">👍 잘한 점</h3>
           <ul id="strengthsList"></ul>
         </div>
         <div class="callout callout-next">
-          <h3>🎯 다음 단계 목표</h3>
+          <h3 id="nextStepsTitle">🎯 다음 단계 목표</h3>
           <ul id="nextStepsList"></ul>
         </div>
       </div>
@@ -119,12 +142,12 @@
 
   <footer class="site-footer">
     <p>
-      본 서비스는 <strong>Anthropic 또는 Claude와 공식적으로 제휴되지 않은 독립적인 오픈소스 프로젝트</strong>입니다.
+      본 서비스는 E&amp;Languages(EnL_language)가 만든 도구로, <strong>Anthropic 또는 Claude와 공식적으로 제휴되어 있지 않습니다</strong>.
       "Claude"와 "Anthropic"은 Anthropic PBC의 상표이며, 본 도구는 사용자가 직접 발급받은 API 키를 통해
       해당 API를 이용할 뿐입니다. AI가 생성한 채점 결과는 참고용이며 오류가 있을 수 있으니
       최종 판단은 반드시 사람(교사·학부모)이 함께 확인해 주세요.
     </p>
-    <p class="footer-license">MIT License</p>
+    <p class="footer-license">© 2026 EnL_language. All rights reserved. For personal and classroom use only. Do not copy, share, or redistribute without permission.</p>
   </footer>
 </div>
 

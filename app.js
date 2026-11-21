@@ -1,4 +1,6 @@
 /* 라이팅 코치 — English Writing Feedback Tool
+ * © 2026 EnL_language. All rights reserved. For personal and classroom use only.
+ * Do not copy, share, or redistribute without permission.
  * Client-side only: essays and API keys go directly from the browser to
  * Anthropic's API. Nothing is sent to or stored on any third-party server.
  */
@@ -7,11 +9,11 @@ const GRADE_GROUPS = [
   {
     label: '유치원 · Kindergarten',
     items: [
-      { id: 'k', short: '유치원', display: '유치원 (6~7세)', desc: 'Kindergarten (ages 5–6): emergent writing, sight words, simple phonetic spelling, one or two very simple sentences.' },
+      { id: 'k', short: '유치원', display: '유치원 (만 5~6세)', desc: 'Kindergarten (ages 5–6): emergent writing, sight words, simple phonetic spelling, one or two very simple sentences.' },
     ],
   },
   {
-    label: '초등학교 · Elementary (Grades 1–5)',
+    label: '초등학교 · Elementary (Grades 1–5, 한국 초1~초5)',
     items: [
       { id: 'g1', short: '초1', display: 'Grade 1', desc: 'Grade 1 (ages 6–7): simple sentences, basic sight words, beginning capitalization and punctuation.' },
       { id: 'g2', short: '초2', display: 'Grade 2', desc: 'Grade 2 (ages 7–8): short paragraphs, simple and compound sentences, growing sight-word vocabulary.' },
@@ -21,20 +23,20 @@ const GRADE_GROUPS = [
     ],
   },
   {
-    label: '중학교 · Middle School (Grades 6–8)',
+    label: '중학교 · Middle School (Grades 6–8, 한국 초6~중2)',
     items: [
-      { id: 'g6', short: '중1', display: 'Grade 6', desc: 'Grade 6 (ages 11–12): a clear main idea/thesis-like statement, introduction of compound-complex sentences.' },
-      { id: 'g7', short: '중2', display: 'Grade 7', desc: 'Grade 7 (ages 12–13): organized essays with evidence and support, more varied sentence structure.' },
-      { id: 'g8', short: '중3', display: 'Grade 8', desc: 'Grade 8 (ages 13–14): clear argumentative/analytical structure, more sophisticated vocabulary and syntax.' },
+      { id: 'g6', short: '초6', display: 'Grade 6', desc: 'Grade 6 (ages 11–12): a clear main idea/thesis-like statement, introduction of compound-complex sentences.' },
+      { id: 'g7', short: '중1', display: 'Grade 7', desc: 'Grade 7 (ages 12–13): organized essays with evidence and support, more varied sentence structure.' },
+      { id: 'g8', short: '중2', display: 'Grade 8', desc: 'Grade 8 (ages 13–14): clear argumentative/analytical structure, more sophisticated vocabulary and syntax.' },
     ],
   },
   {
-    label: '고등학교 · High School (Grades 9–12)',
+    label: '고등학교 · High School (Grades 9–12, 한국 중3~고3)',
     items: [
-      { id: 'g9', short: '고1', display: 'Grade 9', desc: 'Grade 9 (ages 14–15): high-school level essay structure, a clear thesis, growing sentence variety.' },
-      { id: 'g10', short: '고2', display: 'Grade 10', desc: 'Grade 10 (ages 15–16): analytical writing with strong evidence and reasoning, complex sentence variety.' },
-      { id: 'g11', short: '고3', display: 'Grade 11', desc: 'Grade 11 (ages 16–17): college-prep level argumentation, nuanced word choice, rhetorical sophistication.' },
-      { id: 'g12', short: '고3(상급)', display: 'Grade 12', desc: 'Grade 12 (ages 17–18): college-ready clarity, sophisticated vocabulary and syntax, strong rhetorical control.' },
+      { id: 'g9', short: '중3', display: 'Grade 9', desc: 'Grade 9 (ages 14–15): high-school level essay structure, a clear thesis, growing sentence variety.' },
+      { id: 'g10', short: '고1', display: 'Grade 10', desc: 'Grade 10 (ages 15–16): analytical writing with strong evidence and reasoning, complex sentence variety.' },
+      { id: 'g11', short: '고2', display: 'Grade 11', desc: 'Grade 11 (ages 16–17): college-prep level argumentation, nuanced word choice, rhetorical sophistication.' },
+      { id: 'g12', short: '고3', display: 'Grade 12', desc: 'Grade 12 (ages 17–18): college-ready clarity, sophisticated vocabulary and syntax, strong rhetorical control.' },
     ],
   },
   {
@@ -44,6 +46,41 @@ const GRADE_GROUPS = [
     ],
   },
 ];
+
+const MODEL_IDS = ['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5'];
+const DEFAULT_MODEL = 'claude-sonnet-5-5';
+
+/* 피드백 언어: 설명은 이 언어로, 학생 원문 인용과 고친 영어 문장은 영어 그대로. */
+const FEEDBACK_LANGS = {
+  ko: { name: 'Korean (한국어)', locale: 'ko-KR', ui: {
+    results: '채점 결과', overall: '종합 평가', strengths: '👍 잘한 점', next: '🎯 다음 단계 목표',
+    level: '학년/연령', time: '채점 시각', title: '제목', score: '종합 점수', essay: '제출한 글',
+    note: '※ 본 결과는 AI가 생성한 참고용 첨삭입니다. 최종 판단은 교사·학부모가 함께 확인해 주세요.' } },
+  en: { name: 'English', locale: 'en-US', ui: {
+    results: 'Feedback Report', overall: 'Overall', strengths: '👍 Strengths', next: '🎯 Next Steps',
+    level: 'Grade/Age', time: 'Graded at', title: 'Title', score: 'Overall score', essay: 'Student writing',
+    note: '※ AI-generated feedback for reference only. Please have a teacher or parent review it.' } },
+  ja: { name: 'Japanese (日本語)', locale: 'ja-JP', ui: {
+    results: '添削結果', overall: '総合評価', strengths: '👍 よくできた点', next: '🎯 次の目標',
+    level: '学年/年齢', time: '採点日時', title: 'タイトル', score: '総合点', essay: '提出した文章',
+    note: '※ この結果はAIが作成した参考用の添削です。最終的な判断は先生・保護者がご確認ください。' } },
+  zh: { name: 'Simplified Chinese (简体中文)', locale: 'zh-CN', ui: {
+    results: '批改结果', overall: '总体评价', strengths: '👍 做得好的地方', next: '🎯 下一步目标',
+    level: '年级/年龄', time: '批改时间', title: '题目', score: '总分', essay: '提交的作文',
+    note: '※ 本结果由AI生成，仅供参考。请老师或家长最终确认。' } },
+  es: { name: 'Spanish (Español)', locale: 'es-ES', ui: {
+    results: 'Resultado de la corrección', overall: 'Evaluación general', strengths: '👍 Puntos fuertes', next: '🎯 Próximos objetivos',
+    level: 'Curso/Edad', time: 'Fecha', title: 'Título', score: 'Puntuación total', essay: 'Texto del alumno',
+    note: '※ Corrección generada por IA solo como referencia. Un docente o familiar debe revisarla.' } },
+  vi: { name: 'Vietnamese (Tiếng Việt)', locale: 'vi-VN', ui: {
+    results: 'Kết quả chấm bài', overall: 'Đánh giá tổng quát', strengths: '👍 Điểm làm tốt', next: '🎯 Mục tiêu tiếp theo',
+    level: 'Lớp/Tuổi', time: 'Thời gian chấm', title: 'Tiêu đề', score: 'Tổng điểm', essay: 'Bài viết của học sinh',
+    note: '※ Kết quả do AI tạo, chỉ để tham khảo. Giáo viên hoặc phụ huynh nên kiểm tra lại.' } },
+};
+
+const COPYRIGHT = '© 2026 EnL_language. All rights reserved. For personal and classroom use only. Do not copy, share, or redistribute without permission.';
+
+function langOf(code) { return FEEDBACK_LANGS[code] || FEEDBACK_LANGS.ko; }
 
 const state = {
   selectedGrade: null,
@@ -67,6 +104,12 @@ function cacheEls() {
   els.settingsPanel = document.getElementById('settingsPanel');
   els.apiKey = document.getElementById('apiKey');
   els.modelSelect = document.getElementById('modelSelect');
+  els.feedbackLang = document.getElementById('feedbackLang');
+  els.lessonMode = document.getElementById('lessonMode');
+  els.resultsTitle = document.getElementById('resultsTitle');
+  els.overallTitle = document.getElementById('overallTitle');
+  els.strengthsTitle = document.getElementById('strengthsTitle');
+  els.nextStepsTitle = document.getElementById('nextStepsTitle');
   els.rememberKey = document.getElementById('rememberKey');
   els.gradeGroups = document.getElementById('gradeGroups');
   els.essayTitle = document.getElementById('essayTitle');
@@ -144,6 +187,15 @@ function bindEvents() {
   els.apiKey.addEventListener('change', persistSettingsIfRemembered);
   els.rememberKey.addEventListener('change', persistSettingsIfRemembered);
   els.modelSelect.addEventListener('change', persistSettingsIfRemembered);
+  els.feedbackLang.addEventListener('change', persistPrefs);
+  els.lessonMode.addEventListener('change', persistPrefs);
+}
+
+/* 피드백 언어·수업 여부는 비밀이 아니므로 키 기억 여부와 상관없이 저장 */
+function persistPrefs() {
+  try {
+    localStorage.setItem('wc_prefs', JSON.stringify({ lang: els.feedbackLang.value, lesson: els.lessonMode.value }));
+  } catch (e) { /* ignore */ }
 }
 
 function toggleSettings() {
@@ -160,11 +212,17 @@ function restoreSettings() {
     if (data.remember) {
       els.rememberKey.checked = true;
       if (data.apiKey) els.apiKey.value = data.apiKey;
-      if (data.model) els.modelSelect.value = data.model;
+      // 예전 버전에 저장된 모델 이름은 무시하고 기본 모델 사용
+      els.modelSelect.value = MODEL_IDS.includes(data.model) ? data.model : DEFAULT_MODEL;
     }
   } catch (e) {
     /* ignore corrupted storage */
   }
+  try {
+    const prefs = JSON.parse(localStorage.getItem('wc_prefs') || '{}');
+    if (prefs.lang && FEEDBACK_LANGS[prefs.lang]) els.feedbackLang.value = prefs.lang;
+    if (prefs.lesson === 'test' || prefs.lesson === 'lesson') els.lessonMode.value = prefs.lesson;
+  } catch (e) { /* ignore */ }
 }
 
 function persistSettingsIfRemembered() {
@@ -183,10 +241,26 @@ function persistSettingsIfRemembered() {
   }
 }
 
+/* 영어(라틴 문자) 단어만 셉니다. 한글·한자·가나 등 다른 문자는 따로 셉니다. */
+function analyzeText(text) {
+  // "dolphin을", "海豚。Dolphins"처럼 다른 글자에 붙은 영어 단어도 셉니다.
+  const englishWords = (text.match(/\p{Script=Latin}+(?:['’-]\p{Script=Latin}+)*/gu) || []).length;
+  const letters = text.match(/\p{L}/gu) || [];
+  const latin = letters.filter((ch) => /\p{Script=Latin}/u.test(ch)).length;
+  const nonLatin = letters.length - latin;
+  return {
+    englishWords,
+    chars: [...text].length,
+    nonLatin,
+    latinRatio: letters.length ? latin / letters.length : 1,
+  };
+}
+
 function updateWordCount() {
-  const text = els.essayText.value.trim();
-  const words = text.length ? text.split(/\s+/).filter(Boolean).length : 0;
-  els.wordCount.textContent = `${words} 단어 · ${text.length}자`;
+  const info = analyzeText(els.essayText.value.trim());
+  let label = `영어 ${info.englishWords} 단어 · ${info.chars}자`;
+  if (info.nonLatin > 0) label += ` · 영어 외 글자 ${info.nonLatin}개`;
+  els.wordCount.textContent = label;
 }
 
 function fillSampleEssay() {
@@ -225,21 +299,34 @@ async function handleGrade() {
     showError('연령 / 학년을 먼저 선택해주세요.');
     return;
   }
-  if (essay.length < 10) {
-    showError('채점할 글이 너무 짧습니다. 최소 몇 문장 이상 입력해주세요.');
+  const info = analyzeText(essay);
+  const minWords = grade.id === 'k' || grade.id === 'g1' ? 3 : 10;
+  if (info.englishWords < minWords) {
+    showError(info.nonLatin > info.englishWords
+      ? '이 도구는 영어 글 첨삭용입니다. 영어로 쓴 글을 입력해주세요. (피드백을 받을 언어는 "2. 채점 옵션"에서 고를 수 있어요.)'
+      : `채점할 영어 글이 너무 짧습니다. 영어 단어 ${minWords}개 이상 입력해주세요.`);
     return;
+  }
+  if (info.latinRatio < 0.7) {
+    const ok = window.confirm('글에 영어가 아닌 부분이 많습니다. 영어 부분만 채점하고, 다른 언어로 쓴 부분은 따로 알려 드립니다. 계속할까요?');
+    if (!ok) return;
   }
 
   setLoading(true);
   try {
     const result = await gradeEssay({
       apiKey,
-      model: els.modelSelect.value,
+      model: MODEL_IDS.includes(els.modelSelect.value) ? els.modelSelect.value : DEFAULT_MODEL,
       grade,
+      langCode: els.feedbackLang.value,
+      lessonMode: els.lessonMode.value,
       title: els.essayTitle.value.trim(),
       essay,
     });
-    state.lastResult = { ...result, grade, title: els.essayTitle.value.trim(), essay, gradedAt: new Date() };
+    state.lastResult = {
+      ...result, grade, title: els.essayTitle.value.trim(), essay, gradedAt: new Date(),
+      langCode: els.feedbackLang.value, lessonMode: els.lessonMode.value,
+    };
     renderResults(state.lastResult);
   } catch (err) {
     console.error(err);
@@ -254,7 +341,10 @@ function friendlyError(err) {
   if (msg.includes('401') || msg.toLowerCase().includes('authentication')) {
     return 'API 키가 유효하지 않습니다. 키를 다시 확인해주세요.';
   }
-  if (msg.includes('429')) {
+  if (msg.includes('404') || msg.toLowerCase().includes('model')) {
+    return '선택한 채점 모델을 사용할 수 없습니다. "⚙️ API 설정"에서 다른 모델을 골라 다시 시도해주세요.';
+  }
+  if (msg.includes('429') || msg.includes('529') || msg.toLowerCase().includes('overloaded')) {
     return '요청이 너무 많습니다 (rate limit). 잠시 후 다시 시도해주세요.';
   }
   if (msg.toLowerCase().includes('failed to fetch') || msg.toLowerCase().includes('networkerror')) {
@@ -292,10 +382,26 @@ You must respond with ONLY a single valid JSON object (no markdown code fences, 
   "nextSteps": ["<specific, actionable next goal>", "..."]
 }
 
-Each "details" array should have 2-4 items when possible. Quote short snippets from the student's actual text where useful. Keep language simple enough for a parent to understand. Output nothing but the JSON object.`;
+Each "details" array should have 2-4 items when possible. Quote short snippets from the student's actual text where useful. Keep language simple enough for a parent to understand.
 
-async function gradeEssay({ apiKey, model, grade, title, essay }) {
+Language rules:
+- Write every explanation (overallSummary, each summary, the explanatory part of each details item, strengths, nextSteps) in the feedback language named in the user message.
+- Never translate the student's writing. Keep quotes from the student's text, corrected sentences, and suggested words in English, inside double quotes, e.g. "there way" → "their way".
+- Grade only the English parts of the text. If some parts are written in another language, do not score those parts; mention it once in overallSummary (in the feedback language) and encourage the student to write them in English.
+- Do not penalize the student for using American or British spelling, as long as it is consistent.
+
+Output nothing but the JSON object.`;
+
+const FLOW_RULES = {
+  lesson: 'This essay was written after the student attended a lesson (e.g. a Zoom class). For Flow & Organization, first acknowledge what the student did well, then focus on the ending: if the conclusion lacks supporting detail or includes content unrelated to the topic, give a clear direction for improving it.',
+  test: 'This essay was written as a test without a lesson. For Flow & Organization, give a balanced picture of the strengths and weaknesses of the overall flow and structure (beginning, middle, and end).',
+};
+
+async function gradeEssay({ apiKey, model, grade, title, essay, langCode, lessonMode }) {
+  const lang = langOf(langCode);
   const userPrompt = `Student grade/age level: ${grade.display} — ${grade.desc}
+Feedback language: ${lang.name}
+Writing context: ${FLOW_RULES[lessonMode] || FLOW_RULES.lesson}
 
 ${title ? `Essay title: ${title}\n\n` : ''}Essay text to grade:
 """
@@ -314,7 +420,7 @@ Grade this essay now and return only the JSON object described in your instructi
     },
     body: JSON.stringify({
       model,
-      max_tokens: 2500,
+      max_tokens: 4000,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userPrompt }],
     }),
@@ -330,6 +436,9 @@ Grade this essay now and return only the JSON object described in your instructi
   }
 
   const data = await response.json();
+  if (data.stop_reason === 'max_tokens') {
+    throw new Error('채점 결과가 너무 길어 중간에 잘렸습니다. 글을 나누어 다시 채점해주세요.');
+  }
   const rawText = (data.content || []).map((c) => c.text || '').join('').trim();
   return parseGradingJson(rawText);
 }
@@ -360,9 +469,15 @@ const CATEGORY_META = [
 ];
 
 function renderResults(result) {
+  const lang = langOf(result.langCode);
   els.resultsPanel.hidden = false;
+  els.resultsPanel.lang = (lang.locale || 'ko').slice(0, 2);
+  els.resultsTitle.textContent = lang.ui.results;
+  els.overallTitle.textContent = lang.ui.overall;
+  els.strengthsTitle.textContent = lang.ui.strengths;
+  els.nextStepsTitle.textContent = lang.ui.next;
   els.resultMeta.textContent =
-    `${result.title ? result.title + ' · ' : ''}학년/연령: ${result.grade.display} · 채점 시각: ${result.gradedAt.toLocaleString('ko-KR')}`;
+    `${result.title ? result.title + ' · ' : ''}${lang.ui.level}: ${result.grade.display} · ${lang.ui.time}: ${result.gradedAt.toLocaleString(lang.locale)}`;
 
   els.overallScore.textContent = clampScore(result.overallScore, 100);
   els.overallSummary.textContent = result.overallSummary || '';
@@ -404,14 +519,16 @@ function escapeHtml(str) {
 }
 
 function buildPlainTextReport(result) {
+  const lang = langOf(result.langCode);
+  const ui = lang.ui;
   const lines = [];
-  lines.push('=== 라이팅 코치 채점 결과 ===');
-  if (result.title) lines.push(`제목: ${result.title}`);
-  lines.push(`학년/연령: ${result.grade.display}`);
-  lines.push(`채점 시각: ${result.gradedAt.toLocaleString('ko-KR')}`);
-  lines.push(`종합 점수: ${clampScore(result.overallScore, 100)}/100`);
+  lines.push(`=== ${ui.results} ===`);
+  if (result.title) lines.push(`${ui.title}: ${result.title}`);
+  lines.push(`${ui.level}: ${result.grade.display}`);
+  lines.push(`${ui.time}: ${result.gradedAt.toLocaleString(lang.locale)}`);
+  lines.push(`${ui.score}: ${clampScore(result.overallScore, 100)}/100`);
   lines.push('');
-  lines.push('[종합 평가]');
+  lines.push(`[${ui.overall}]`);
   lines.push(result.overallSummary || '');
   lines.push('');
   CATEGORY_META.forEach((meta) => {
@@ -421,13 +538,14 @@ function buildPlainTextReport(result) {
     (cat.details || []).forEach((d) => lines.push(`  - ${d}`));
     lines.push('');
   });
-  lines.push('[잘한 점]');
+  lines.push(`[${ui.strengths.replace(/^\S+\s/, '')}]`);
   (result.strengths || []).forEach((s) => lines.push(`  - ${s}`));
   lines.push('');
-  lines.push('[다음 단계 목표]');
+  lines.push(`[${ui.next.replace(/^\S+\s/, '')}]`);
   (result.nextSteps || []).forEach((s) => lines.push(`  - ${s}`));
   lines.push('');
-  lines.push('※ 본 결과는 AI(Anthropic Claude API)가 생성한 참고용 첨삭입니다.');
+  lines.push(ui.note);
+  lines.push(COPYRIGHT);
   return lines.join('\n');
 }
 
@@ -462,6 +580,8 @@ function flashButton(btn, tempLabel) {
 }
 
 function buildReportHtml(result) {
+  const lang = langOf(result.langCode);
+  const ui = lang.ui;
   const categoryBlocks = CATEGORY_META.map((meta) => {
     const cat = (result.categories && result.categories[meta.key]) || {};
     const score = clampScore(cat.score, 10);
@@ -479,9 +599,9 @@ function buildReportHtml(result) {
   const nextSteps = (result.nextSteps || []).map((s) => `<li>${escapeHtml(s)}</li>`).join('') || '<li>-</li>';
 
   return `<!DOCTYPE html>
-<html lang="ko"><head><meta charset="UTF-8"><title>${escapeHtml(result.title || '라이팅 첨삭 결과')}</title>
+<html lang="${lang.locale.slice(0, 2)}"><head><meta charset="UTF-8"><title>${escapeHtml(result.title || ui.results)}</title>
 <style>
-body{font-family:'Noto Sans KR',Arial,sans-serif;max-width:760px;margin:32px auto;padding:0 16px;color:#1e2130;line-height:1.6;}
+body{font-family:'Noto Sans KR','Noto Sans JP','Noto Sans SC','PingFang SC','Hiragino Sans',Arial,sans-serif;max-width:760px;margin:32px auto;padding:0 16px;color:#1e2130;line-height:1.6;}
 h1{font-size:20px;} .meta{color:#656b7c;font-size:13px;margin-bottom:20px;}
 .essay-box{background:#f6f7fb;border:1px solid #e2e5ee;border-radius:12px;padding:16px;white-space:pre-wrap;font-size:14px;margin-bottom:24px;}
 .overall{display:flex;align-items:center;gap:16px;background:#f0f2f8;border-radius:12px;padding:16px;margin-bottom:20px;}
@@ -499,27 +619,27 @@ footer{margin-top:28px;font-size:11px;color:#8a8f9e;text-align:center;line-heigh
 @media print{body{margin:0;}}
 </style></head>
 <body>
-  <h1>✍️ 라이팅 코치 — 채점 결과</h1>
-  <p class="meta">${result.title ? escapeHtml(result.title) + ' · ' : ''}학년/연령: ${escapeHtml(result.grade.display)} · 채점 시각: ${result.gradedAt.toLocaleString('ko-KR')}</p>
+  <h1>✍️ ${escapeHtml(ui.results)}</h1>
+  <p class="meta">${result.title ? escapeHtml(result.title) + ' · ' : ''}${escapeHtml(ui.level)}: ${escapeHtml(result.grade.display)} · ${escapeHtml(ui.time)}: ${escapeHtml(result.gradedAt.toLocaleString(lang.locale))}</p>
 
-  <h3>제출한 글</h3>
+  <h3>${escapeHtml(ui.essay)}</h3>
   <div class="essay-box">${escapeHtml(result.essay || '')}</div>
 
   <div class="overall">
     <div class="score">${clampScore(result.overallScore, 100)}</div>
-    <div><h3 style="margin:0 0 4px;">종합 평가</h3><p style="margin:0;font-size:14px;color:#656b7c;">${escapeHtml(result.overallSummary || '')}</p></div>
+    <div><h3 style="margin:0 0 4px;">${escapeHtml(ui.overall)}</h3><p style="margin:0;font-size:14px;color:#656b7c;">${escapeHtml(result.overallSummary || '')}</p></div>
   </div>
 
   <div class="category-grid">${categoryBlocks}</div>
 
   <div class="two-col">
-    <div class="callout callout-good"><h3 style="margin:0 0 8px;color:#16a34a;">👍 잘한 점</h3><ul>${strengths}</ul></div>
-    <div class="callout callout-next"><h3 style="margin:0 0 8px;color:#d97706;">🎯 다음 단계 목표</h3><ul>${nextSteps}</ul></div>
+    <div class="callout callout-good"><h3 style="margin:0 0 8px;color:#16a34a;">${escapeHtml(ui.strengths)}</h3><ul>${strengths}</ul></div>
+    <div class="callout callout-next"><h3 style="margin:0 0 8px;color:#d97706;">${escapeHtml(ui.next)}</h3><ul>${nextSteps}</ul></div>
   </div>
 
   <footer>
-    본 결과는 AI(Anthropic Claude API)가 생성한 참고용 첨삭이며, Anthropic 또는 Claude와 공식 제휴되지 않은 독립 프로젝트 "라이팅 코치"로 생성되었습니다.<br>
-    최종 판단은 반드시 사람(교사·학부모)이 함께 확인해 주세요.
+    ${escapeHtml(ui.note)}<br>
+    ${escapeHtml(COPYRIGHT)}
   </footer>
 </body></html>`;
 }
@@ -530,9 +650,10 @@ function saveResults() {
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const safeTitle = (state.lastResult.title || 'writing-feedback').replace(/[^\w\-가-힣 ]/g, '').trim() || 'writing-feedback';
+  // 한·중·일 등 모든 언어 글자는 살리고, 파일 이름에 못 쓰는 기호만 뺍니다.
+  const safeTitle = (state.lastResult.title || 'writing-feedback').replace(/[^\p{L}\p{N}\-_ ]/gu, '').trim().slice(0, 60) || 'writing-feedback';
   a.href = url;
-  a.download = `${safeTitle}-결과.html`;
+  a.download = `${safeTitle}-feedback.html`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
